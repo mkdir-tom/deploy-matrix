@@ -24,7 +24,7 @@ jobs:
       - run: echo 'test'
 
   deploy-blx:
-    needs: build-images
+    needs: [ build-images ]
     runs-on: ubuntu-latest
     steps:
       - name: Deploy to Development
@@ -35,7 +35,7 @@ jobs:
 #          echo "\n\nAppVersion: ${{ env.IMG_TAG }}" >> values.yaml
 #          echo "Changing Image Version of ${{ env.DOCKER_ORG }}/${{ matrix.env.img_name }}:${{ env.IMG_TAG }}"
   deploy-hkt:
-    needs: build-images
+    needs: [ build-images ]
     runs-on: ubuntu-latest
     steps:
       - name: Deploy to Development

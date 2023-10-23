@@ -5,14 +5,20 @@ on:
     workflows: ["Build and Deploy"]
     types:
       - completed
+env:
+  GITHUB_ORG: test
+  DOCKER_ORG: org-test
+  IMG_TAG: ${{ github.sha }}
+  IMG_NAME: hkt-user-service
+  INFRA_REPO: hkt-infrastructure
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
       - name: Deploy to Development
         run: |
-          echo "xxxx"
+          echo ${{ matrix.env.infra_repo }}/kubernetes/${GITHUB_REF#refs/heads/}/deployments/${{ env.IMG_NAME }}
+          echo values-${GITHUB_REF#refs/heads/}.yaml values.yaml
+          echo "\n\nAppVersion: ${{ env.IMG_TAG }}" >> values.yaml
+          echo "Changing Image Version of ${{ env.DOCKER_ORG }}/${{ env.IMG_NAME }}:${{ env.IMG_TAG }}"
