@@ -11,6 +11,10 @@ env:
   DOCKER_ORG: org-test
   IMG_TAG: ${{ github.sha }}
   IMG_NAME: user-service
+  BLX_IMG_NAME: blx-user-service
+  BLX_INFRA_REPO: blx-infrastructure
+  HKT_IMG_NAME: hkt-user-service
+  HKT_INFRA_REPO: hkt-infrastructure
 
 jobs:
   build-images:
@@ -28,23 +32,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Deploy to Development
-        uses: ./.github/workflows/deploy-blx.yml
-#        run: |
-#          echo ${{ matrix.env.infra_repo }}/kubernetes/${GITHUB_REF#refs/heads/}/deployments/${{ matrix.env.img_name }}
-#          echo values-${GITHUB_REF#refs/heads/}.yaml values.yaml
-#          echo "\n\nAppVersion: ${{ env.IMG_TAG }}" >> values.yaml
-#          echo "Changing Image Version of ${{ env.DOCKER_ORG }}/${{ matrix.env.img_name }}:${{ env.IMG_TAG }}"
+        run: |
+          echo ${{ env.BLX_INFRA_REPO }}/kubernetes/${GITHUB_REF#refs/heads/}/deployments/${{ env.BLX_IMG_NAME }}
+          echo values-${GITHUB_REF#refs/heads/}.yaml values.yaml
+          echo "\n\nAppVersion: ${{ env.IMG_TAG }}" >> values.yaml
+          echo "Changing Image Version of ${{ env.DOCKER_ORG }}/${{ env.BLX_IMG_NAME }}:${{ env.IMG_TAG }}"
+
   deploy-hkt:
     needs: [ build-images ]
     runs-on: ubuntu-latest
     steps:
       - name: Deploy to Development
-        uses: ./.github/workflows/deploy-hkt.yml
-#        run: |
-#          echo ${{ matrix.env.infra_repo }}/kubernetes/${GITHUB_REF#refs/heads/}/deployments/${{ matrix.env.img_name }}
-#          echo values-${GITHUB_REF#refs/heads/}.yaml values.yaml
-#          echo "\n\nAppVersion: ${{ env.IMG_TAG }}" >> values.yaml
-#          echo "Changing Image Version of ${{ env.DOCKER_ORG }}/${{ matrix.env.img_name }}:${{ env.IMG_TAG }}"
+        run: |
+          echo ${{ env.HKT_INFRA_REPO }}/kubernetes/${GITHUB_REF#refs/heads/}/deployments/${{ env.HKT_IMG_NAME }}
+          echo values-${GITHUB_REF#refs/heads/}.yaml values.yaml
+          echo "\n\nAppVersion: ${{ env.IMG_TAG }}" >> values.yaml
+          echo "Changing Image Version of ${{ env.DOCKER_ORG }}/${{ env.HKT_IMG_NAME }}:${{ env.IMG_TAG }}"
 ##  deploy:
 #    needs: [ build-images ]
 #    timeout-minutes: 15
