@@ -1,0 +1,69 @@
+name: Deploy
+
+# Run this workflow every time a new commit pushed to your repository
+on:
+  push:
+    branches:
+      - develop
+
+env:
+  GITHUB_ORG: test
+  DOCKER_ORG: org-test
+  IMG_TAG: ${{ github.sha }}
+  IMG_NAME: user-service
+
+jobs:
+  build-images:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Setup buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build and push ${{ env.IMG_NAME }} image
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          builder: ${{ steps.buildx.outputs.name }}
+          push: true
+          tags: ${{ env.IMG_NAME }}:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy:
+    needs: [ build ]
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        env: [
+          {
+            img_name: 'blx-user-service',
+            infra_repo: 'blx-infrastructure'
+          },
+          {
+            img_name: 'hkt-user-service',
+            infra_repo: 'hkt-user-service'
+
+          }
+        ]
+    steps:
+      - name: Clone Infras
+        run: |
+          echo Clone From https://${{ env.GITHUB_ORG }}:${{ secrets.GH_TOKEN }}@github.com/${{ env.GITHUB_ORG }}/${{ matrix.env.infra_repo }}.git
+          git clone https://${{ env.GITHUB_ORG }}:${{ secrets.GH_TOKEN }}@github.com/${{ env.GITHUB_ORG }}/${{ matrix.env.infra_repo }}.git -b main
+      - name: Replace Deployment Image Version
+        run: |
+          cd ${{ matrix.env.infra_repo }}/kubernetes/${GITHUB_REF#refs/heads/}/deployments/${{ matrix.env.img_name }}
+          cp values-${GITHUB_REF#refs/heads/}.yaml values.yaml
+          echo -e "\n\nAppVersion: ${{ env.IMG_TAG }}" >> values.yaml
+          git add -A
+          git commit -m "Changing Image Version of ${{ env.DOCKER_ORG }}/${{ matrix.env.img_name }}:${{ env.IMG_TAG }}"
+          git push -u origin main
+
