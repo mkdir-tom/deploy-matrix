@@ -37,7 +37,7 @@ jobs:
           cache-to: type=gha,mode=max
 
   deploy:
-    needs: [ build ]
+    needs: [ build-images ]
     timeout-minutes: 15
     runs-on: ubuntu-latest
     strategy:
