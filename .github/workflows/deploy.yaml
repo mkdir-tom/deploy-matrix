@@ -21,16 +21,7 @@ jobs:
 
       - name: Setup buildx
         uses: docker/setup-buildx-action@v2
-
-      - name: Build and push ${{ env.IMG_NAME }} image
-        uses: docker/build-push-action@v3
-        with:
-          context: .
-          builder: ${{ steps.buildx.outputs.name }}
-          push: true
-          tags: ${{ env.IMG_NAME }}:${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+      - run: echo 'test'
 
   deploy:
     needs: [ build-images ]
