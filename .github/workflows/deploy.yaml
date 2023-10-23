@@ -23,31 +23,53 @@ jobs:
         uses: docker/setup-buildx-action@v2
       - run: echo 'test'
 
-  deploy:
-    needs: [ build-images ]
-    timeout-minutes: 15
+  deploy-blx:
+    needs: build
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        env: [
-          {
-            img_name: 'blx-user-service',
-            infra_repo: 'blx-infrastructure'
-          },
-          {
-            img_name: 'hkt-user-service',
-            infra_repo: 'hkt-user-service'
-
-          }
-        ]
     steps:
-      - name: Clone Infras
-        run: |
-          echo Clone From https://${{ env.GITHUB_ORG }}:${{ secrets.GH_TOKEN }}@github.com/${{ env.GITHUB_ORG }}/${{ matrix.env.infra_repo }}.git
-      - name: Replace Deployment Image Version
+      - name: Deploy to Development
+        uses: ./.github/workflows/deploy-blx.yml
         run: |
           echo ${{ matrix.env.infra_repo }}/kubernetes/${GITHUB_REF#refs/heads/}/deployments/${{ matrix.env.img_name }}
           echo values-${GITHUB_REF#refs/heads/}.yaml values.yaml
           echo "\n\nAppVersion: ${{ env.IMG_TAG }}" >> values.yaml
           echo "Changing Image Version of ${{ env.DOCKER_ORG }}/${{ matrix.env.img_name }}:${{ env.IMG_TAG }}"
+  deploy-hkt:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to Development
+        uses: ./.github/workflows/deploy-hkt.yml
+        run: |
+          echo ${{ matrix.env.infra_repo }}/kubernetes/${GITHUB_REF#refs/heads/}/deployments/${{ matrix.env.img_name }}
+          echo values-${GITHUB_REF#refs/heads/}.yaml values.yaml
+          echo "\n\nAppVersion: ${{ env.IMG_TAG }}" >> values.yaml
+          echo "Changing Image Version of ${{ env.DOCKER_ORG }}/${{ matrix.env.img_name }}:${{ env.IMG_TAG }}"
+#  deploy:
+#    needs: [ build-images ]
+#    timeout-minutes: 15
+#    runs-on: ubuntu-latest
+#    strategy:
+#      matrix:
+#        env: [
+#          {
+#            img_name: 'blx-user-service',
+#            infra_repo: 'blx-infrastructure'
+#          },
+#          {
+#            img_name: 'hkt-user-service',
+#            infra_repo: 'hkt-user-service'
+#
+#          }
+#        ]
+#    steps:
+#      - name: Clone Infras
+#        run: |
+#          echo Clone From https://${{ env.GITHUB_ORG }}:${{ secrets.GH_TOKEN }}@github.com/${{ env.GITHUB_ORG }}/${{ matrix.env.infra_repo }}.git
+#      - name: Replace Deployment Image Version
+#        run: |
+#          echo ${{ matrix.env.infra_repo }}/kubernetes/${GITHUB_REF#refs/heads/}/deployments/${{ matrix.env.img_name }}
+#          echo values-${GITHUB_REF#refs/heads/}.yaml values.yaml
+#          echo "\n\nAppVersion: ${{ env.IMG_TAG }}" >> values.yaml
+#          echo "Changing Image Version of ${{ env.DOCKER_ORG }}/${{ matrix.env.img_name }}:${{ env.IMG_TAG }}"
 
