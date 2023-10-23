@@ -44,13 +44,10 @@ jobs:
       - name: Clone Infras
         run: |
           echo Clone From https://${{ env.GITHUB_ORG }}:${{ secrets.GH_TOKEN }}@github.com/${{ env.GITHUB_ORG }}/${{ matrix.env.infra_repo }}.git
-          git clone https://${{ env.GITHUB_ORG }}:${{ secrets.GH_TOKEN }}@github.com/${{ env.GITHUB_ORG }}/${{ matrix.env.infra_repo }}.git -b main
       - name: Replace Deployment Image Version
         run: |
-          cd ${{ matrix.env.infra_repo }}/kubernetes/${GITHUB_REF#refs/heads/}/deployments/${{ matrix.env.img_name }}
-          cp values-${GITHUB_REF#refs/heads/}.yaml values.yaml
-          echo -e "\n\nAppVersion: ${{ env.IMG_TAG }}" >> values.yaml
-          git add -A
-          git commit -m "Changing Image Version of ${{ env.DOCKER_ORG }}/${{ matrix.env.img_name }}:${{ env.IMG_TAG }}"
-          git push -u origin main
+          echo ${{ matrix.env.infra_repo }}/kubernetes/${GITHUB_REF#refs/heads/}/deployments/${{ matrix.env.img_name }}
+          echo values-${GITHUB_REF#refs/heads/}.yaml values.yaml
+          echo "\n\nAppVersion: ${{ env.IMG_TAG }}" >> values.yaml
+          echo "Changing Image Version of ${{ env.DOCKER_ORG }}/${{ matrix.env.img_name }}:${{ env.IMG_TAG }}"
 
